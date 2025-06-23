@@ -18,7 +18,7 @@ var stripMarginGroup = regexp.MustCompile(`(?m)^[ \t]*\|(.*)(?:\r?\n|$)`)
 //	|<content line 2>
 //	`)
 func StripMargin(s string) string {
-	// Handle empty string case
+	// Handle an empty string case
 	if s == "" {
 		return ""
 	}
