@@ -15,7 +15,7 @@ Thank you for your interest in contributing to textsmith! This document provides
 ## Getting Started
 
 ### Prerequisites
-- Go 1.20 or later
+- Go 1.21 or later
 - Git
 - Make (for using the Makefile commands)
 

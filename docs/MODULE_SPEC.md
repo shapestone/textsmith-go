@@ -63,7 +63,7 @@ textsmith/
 ## 6. Testing & Quality Strategy
 - **Coverage Requirement:** 100% test coverage maintained
 - **Test Types:** Table-driven tests, edge cases, cross-platform compatibility, benchmarks
-- **CI Pipeline:** GitHub Actions with Go 1.20+ matrix testing
+- **CI Pipeline:** GitHub Actions with Go 1.21+ matrix testing
 - **Quality Gates:** `make check` runs format + vet + test before commits
 
 **Test Categories:**
