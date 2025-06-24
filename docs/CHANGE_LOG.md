@@ -28,6 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Proper handling of empty strings and empty line comparisons
 - Accurate positioning of difference markers in Unicode text
 - Consistent behavior across different text encodings and character sets
+- **Diff function trailing newline behavior to respect input string format** - The Diff function now only adds trailing newlines to output when input strings actually end with newlines, ensuring output format consistency with input format
+- **Improved test debugging output** - Enhanced compareMultilineStrings function with detailed character-by-character analysis, length difference detection, and better error messaging for failed string comparisons
 
 ## [1.0.1] - 2025-06-23
 
