@@ -30,7 +30,7 @@ func TestDiff_OutputFormat_WithTabSpaceDifference_ShowsCorrectFormat(t *testing.
 
 	// - Verify diff format
 	if actual != expected {
-		t.Fatalf("Actual vs Expected is not matching:\n\n%v", compareStrings(actual, expected))
+		t.Fatalf("Actual vs Expected is not matching:\n\n%v", compareMultilineStrings(actual, expected))
 	}
 }
 
@@ -57,7 +57,7 @@ func TestDiff_OutputFormat_WithIdenticalStrings_ShowsHeaderOnly(t *testing.T) {
 
 	// - Verify diff format
 	if actual != expected {
-		t.Fatalf("Actual vs Expected is not matching:\n\n%v", compareStrings(actual, expected))
+		t.Fatalf("Actual vs Expected is not matching:\n\n%v", compareMultilineStrings(actual, expected))
 	}
 }
 
@@ -85,7 +85,7 @@ func TestDiff_OutputFormat_WithSimpleDifference_ShowsExactFormat(t *testing.T) {
 
 	// - Verify diff format
 	if actual != expected {
-		t.Fatalf("Actual vs Expected is not matching:\n\n%v", compareStrings(actual, expected))
+		t.Fatalf("Actual vs Expected is not matching:\n\n%v", compareMultilineStrings(actual, expected))
 	}
 }
 
@@ -114,7 +114,7 @@ func TestDiff_OutputFormat_WithExpectedLongerThanActual_ShowsLeftArrow(t *testin
 
 	// - Verify diff format
 	if actual != expected {
-		t.Fatalf("Actual vs Expected is not matching:\n\n%v", compareStrings(actual, expected))
+		t.Fatalf("Actual vs Expected is not matching:\n\n%v", compareMultilineStrings(actual, expected))
 	}
 }
 
@@ -143,7 +143,7 @@ func TestDiff_OutputFormat_WithActualLongerThanExpected_ShowsRightArrow(t *testi
 
 	// - Verify diff format
 	if actual != expected {
-		t.Fatalf("Actual vs Expected is not matching:\n\n%v", compareStrings(actual, expected))
+		t.Fatalf("Actual vs Expected is not matching:\n\n%v", compareMultilineStrings(actual, expected))
 	}
 }
 
@@ -172,7 +172,7 @@ func TestDiff_OutputFormat_WithEmptyLineInExpected_ShowsEmptyLineSymbol(t *testi
 
 	// - Verify diff format
 	if actual != expected {
-		t.Fatalf("Actual vs Expected is not matching:\n\n%v", compareStrings(actual, expected))
+		t.Fatalf("Actual vs Expected is not matching:\n\n%v", compareMultilineStrings(actual, expected))
 	}
 }
 
@@ -200,7 +200,7 @@ func TestDiff_OutputFormat_WithComplexWhitespace_ShowsAllWhitespaceSymbols(t *te
 
 	// - Verify diff format
 	if actual != expected {
-		t.Fatalf("Actual vs Expected is not matching:\n\n%v", compareStrings(actual, expected))
+		t.Fatalf("Actual vs Expected is not matching:\n\n%v", compareMultilineStrings(actual, expected))
 	}
 }
 
@@ -228,7 +228,7 @@ func TestDiff_OutputFormat_WithDifferentLengthStrings_ShowsProperAlignment(t *te
 
 	// - Verify diff format
 	if actual != expected {
-		t.Fatalf("Actual vs Expected is not matching:\n\n%v", compareStrings(actual, expected))
+		t.Fatalf("Actual vs Expected is not matching:\n\n%v", compareMultilineStrings(actual, expected))
 	}
 }
 
@@ -256,7 +256,7 @@ func TestDiff_OutputFormat_WithMultipleSpacesAndTabs_ShowsAllInvisibleChars(t *t
 
 	// - Verify diff format
 	if actual != expected {
-		t.Fatalf("Actual vs Expected is not matching:\n\n%v", compareStrings(actual, expected))
+		t.Fatalf("Actual vs Expected is not matching:\n\n%v", compareMultilineStrings(actual, expected))
 	}
 }
 
@@ -284,7 +284,7 @@ func TestDiff_OutputFormat_WithOnlyWhitespace_ShowsOnlyWhitespaceSymbols(t *test
 
 	// - Verify diff format
 	if actual != expected {
-		t.Fatalf("Actual vs Expected is not matching:\n\n%v", compareStrings(actual, expected))
+		t.Fatalf("Actual vs Expected is not matching:\n\n%v", compareMultilineStrings(actual, expected))
 	}
 }
 
@@ -311,7 +311,7 @@ func TestDiff_OutputFormat_WithEmptyStrings_ShowsEmptyComparison(t *testing.T) {
 
 	// - Verify diff format
 	if actual != expected {
-		t.Fatalf("Actual vs Expected is not matching:\n\n%v", compareStrings(actual, expected))
+		t.Fatalf("Actual vs Expected is not matching:\n\n%v", compareMultilineStrings(actual, expected))
 	}
 }
 
@@ -339,7 +339,7 @@ func TestDiff_OutputFormat_WithMultilineStrings_ShowsCorrectStructure(t *testing
 
 	// - Verify diff format
 	if actual != expected {
-		t.Fatalf("Actual vs Expected is not matching:\n\n%v", compareStrings(actual, expected))
+		t.Fatalf("Actual vs Expected is not matching:\n\n%v", compareMultilineStrings(actual, expected))
 	}
 }
 
@@ -367,7 +367,7 @@ func TestDiff_OutputFormat_WithUnicodeContent_PreservesUnicode(t *testing.T) {
 
 	// - Verify diff format
 	if actual != expected {
-		t.Fatalf("Actual vs Expected is not matching:\n\n%v", compareStrings(actual, expected))
+		t.Fatalf("Actual vs Expected is not matching:\n\n%v", compareMultilineStrings(actual, expected))
 	}
 }
 
@@ -396,7 +396,7 @@ func TestDiff_OutputFormat_WithMixedWhitespaceTypes_ShowsAllCorrectly(t *testing
 
 	// - Verify diff format
 	if actual != expected {
-		t.Fatalf("Actual vs Expected is not matching:\n\n%v", compareStrings(actual, expected))
+		t.Fatalf("Actual vs Expected is not matching:\n\n%v", compareMultilineStrings(actual, expected))
 	}
 }
 
@@ -424,7 +424,7 @@ func TestDiff_CrossPlatform_WindowsVsUnixLineEndings_ShouldMatch(t *testing.T) {
 	}
 
 	if actual != expected {
-		t.Fatalf("Actual vs Expected format mismatch:\n\n%v", compareStrings(actual, expected))
+		t.Fatalf("Actual vs Expected format mismatch:\n\n%v", compareMultilineStrings(actual, expected))
 	}
 }
 
@@ -452,7 +452,7 @@ func TestDiff_CrossPlatform_ClassicMacVsUnixLineEndings_ShouldMatch(t *testing.T
 	}
 
 	if actual != expected {
-		t.Fatalf("Actual vs Expected format mismatch:\n\n%v", compareStrings(actual, expected))
+		t.Fatalf("Actual vs Expected format mismatch:\n\n%v", compareMultilineStrings(actual, expected))
 	}
 }
 
@@ -481,7 +481,7 @@ func TestDiff_CrossPlatform_MixedLineEndings_ShouldNormalize(t *testing.T) {
 	}
 
 	if actual != expected {
-		t.Fatalf("Actual vs Expected format mismatch:\n\n%v", compareStrings(actual, expected))
+		t.Fatalf("Actual vs Expected format mismatch:\n\n%v", compareMultilineStrings(actual, expected))
 	}
 }
 
@@ -509,7 +509,7 @@ func TestDiff_CrossPlatform_EmptyLinesWithDifferentEndings_ShouldMatch(t *testin
 	}
 
 	if actual != expected {
-		t.Fatalf("Actual vs Expected format mismatch:\n\n%v", compareStrings(actual, expected))
+		t.Fatalf("Actual vs Expected format mismatch:\n\n%v", compareMultilineStrings(actual, expected))
 	}
 }
 
@@ -537,48 +537,65 @@ func TestDiff_CrossPlatform_TrailingLineEndingsDifferent_ShouldMatch(t *testing.
 	}
 
 	if actual != expected {
-		t.Fatalf("Actual vs Expected format mismatch:\n\n%v", compareStrings(actual, expected))
+		t.Fatalf("Actual vs Expected format mismatch:\n\n%v", compareMultilineStrings(actual, expected))
 	}
 }
 
-// Test helper functions
-func compareStrings(a string, b string) string {
-	aArr := strings.Split(a, "\n")
-	bArr := strings.Split(b, "\n")
-	rows := max(len(aArr), len(bArr))
+// compareMultilineStrings compares two multi-line strings by splitting them into lines
+// and using CompareStringsRaw for detailed character-level comparison of each line.
+// Uses the raw version to avoid double conversion of invisible characters.
+func compareMultilineStrings(actual, expected string) string {
+	actualLines := strings.Split(actual, "\n")
+	expectedLines := strings.Split(expected, "\n")
+	maxLines := max(len(actualLines), len(expectedLines))
 
 	var result strings.Builder
+	result.WriteString("=== Multi-line String Comparison ===\n\n")
 
-	for i := 0; i < rows; i++ {
-		var aLine, bLine string
+	// Overall match status
+	if actual == expected {
+		result.WriteString("✓ Strings match completely\n\n")
+		return result.String()
+	}
 
-		// Get line from a, or empty if beyond bounds
-		if i < len(aArr) {
-			aLine = aArr[i]
+	result.WriteString("✗ Strings differ - Line-by-line analysis:\n\n")
+
+	hasAnyDifferences := false
+
+	for i := 0; i < maxLines; i++ {
+		var actualLine, expectedLine string
+
+		// Get lines or empty string if beyond bounds
+		if i < len(actualLines) {
+			actualLine = actualLines[i]
+		}
+		if i < len(expectedLines) {
+			expectedLine = expectedLines[i]
 		}
 
-		// Get line from b, or empty if beyond bounds
-		if i < len(bArr) {
-			bLine = bArr[i]
+		// Check if this line differs
+		lineMatches := actualLine == expectedLine
+
+		if !lineMatches {
+			hasAnyDifferences = true
+			result.WriteString(fmt.Sprintf("Line %d differs:\n", i+1))
+
+			// Use CompareStringsRaw for detailed character-level analysis without double conversion
+			lineComparison := CompareStringsRaw(actualLine, expectedLine)
+
+			// Indent the comparison output
+			indentedComparison := strings.ReplaceAll(lineComparison, "\n", "\n  ")
+			result.WriteString("  " + indentedComparison)
+			result.WriteString("\n")
 		}
+	}
 
-		// Add end-of-line markers to visualize whitespace
-		aLineWithEOL := aLine + "¶"
-		bLineWithEOL := bLine + "¶"
-
-		// Check if lines match
-		match := aLine == bLine
-
-		// Format the comparison
-		status := "✓"
-		if !match {
-			status = "✗"
-		}
-
-		result.WriteString(fmt.Sprintf("Row %d: %s\n", i+1, status))
-		result.WriteString(fmt.Sprintf("  A: %s\n", aLineWithEOL))
-		result.WriteString(fmt.Sprintf("  B: %s\n", bLineWithEOL))
-		result.WriteString("\n")
+	// Summary
+	if !hasAnyDifferences {
+		result.WriteString("No line differences found (this shouldn't happen if strings don't match)\n")
+	} else {
+		result.WriteString(fmt.Sprintf("Total lines compared: %d\n", maxLines))
+		result.WriteString(fmt.Sprintf("Actual lines: %d, Expected lines: %d\n", len(actualLines), len(expectedLines)))
 	}
 
 	return result.String()

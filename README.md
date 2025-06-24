@@ -334,6 +334,158 @@ The diff function processes multiline strings by:
 6. **Proper alignment** - Ensures consistent column widths for readable output
 7. **Cross-platform normalization** - Handles different line ending formats automatically
 
+#### CompareStrings Function
+
+The `CompareStrings` function provides a test framework style comparison between actual and expected strings with detailed diff highlighting. It's specifically designed for testing purposes and converts invisible characters to visible symbols for better debugging.
+
+**Function signatures:**
+```go
+func CompareStrings(actual, expected string) string
+func CompareStringsRaw(actual, expected string) string
+```
+
+**Basic usage:**
+```go
+package main
+
+import (
+    "fmt"
+    "github.com/shapestone/textsmith/pkg/text"
+)
+
+func main() {
+    actual := "hello world"
+    expected := "hello world"
+    
+    result := text.CompareStrings(actual, expected)
+    fmt.Print(result)
+}
+```
+
+##### CompareStrings vs CompareStringsRaw
+
+- **CompareStrings**: Converts invisible characters to visible symbols (␣ for space, ␉ for tab, etc.)
+- **CompareStringsRaw**: Shows strings as-is without visualization, useful when strings are already formatted
+
+##### CompareStrings Examples
+
+**Matching strings:**
+```go
+actual := "hello world"
+expected := "hello world"
+
+result := text.CompareStrings(actual, expected)
+fmt.Print(result)
+```
+
+**Output:**
+```
+CompareStrings: ✓ [MATCH]
+  Expected: "hello␣world"¶
+  Actual:   "hello␣world"¶
+```
+
+**Different strings:**
+```go
+actual := "hello world"
+expected := "hello mars"
+
+result := text.CompareStrings(actual, expected)
+fmt.Print(result)
+```
+
+**Output:**
+```
+CompareStrings: ✗ [ASSERTION_FAILED]
+- Expected: "hello␣mars"¶
++ Actual:   "hello␣world"¶
+
+  Difference at position 6:
+      Expected character: 'm' (U+006D)
+      Actual character:   'w' (U+0077)
+```
+
+**Whitespace differences:**
+```go
+actual := "hello\tworld"
+expected := "hello world"
+
+result := text.CompareStrings(actual, expected)
+fmt.Print(result)
+```
+
+**Output:**
+```
+CompareStrings: ✗ [ASSERTION_FAILED]
+- Expected: "hello␣world"¶
++ Actual:   "hello␉world"¶
+
+  Difference at position 5:
+      Expected character: ' ' (U+0020)
+      Actual character:   '	' (U+0009)
+```
+
+**Empty strings:**
+```go
+actual := ""
+expected := ""
+
+result := text.CompareStrings(actual, expected)
+fmt.Print(result)
+```
+
+**Output:**
+```
+CompareStrings: ✓ [MATCH]
+  Expected: <empty>¶
+  Actual:   <empty>¶
+```
+
+**Raw comparison (no visualization):**
+```go
+actual := "hello world"
+expected := "hello mars"
+
+result := text.CompareStringsRaw(actual, expected)
+fmt.Print(result)
+```
+
+**Output:**
+```
+CompareStrings: ✗ [ASSERTION_FAILED]
+- Expected: "hello mars"¶
++ Actual:   "hello world"¶
+
+  Difference at position 6:
+      Expected character: 'm' (U+006D)
+      Actual character:   'w' (U+0077)
+```
+
+##### Visualization Symbols
+
+The `CompareStrings` function uses special Unicode symbols to make invisible characters visible:
+
+- **␣** - Space characters (U+0020)
+- **␉** - Tab characters (U+0009)
+- **␊** - Line feed (U+000A)
+- **␍** - Carriage return (U+000D)
+- **␋** - Vertical tab (U+000B)
+- **␌** - Form feed (U+000C)
+- **¶** - End of line marker
+- **<empty>** - Empty string indicator
+
+##### Unicode Support
+
+Both functions fully support Unicode characters including emojis and complex scripts:
+
+```go
+actual := "Hello 世界! 🌍"
+expected := "Hello 世界! 🌎"
+
+result := text.CompareStrings(actual, expected)
+// Shows exact Unicode code points for differences
+```
+
 ## Building and Testing
 
 ### Test
@@ -374,6 +526,7 @@ make mod-tidy
 - **StripMargin**: Clean multiline string handling with margin indicators
 - **StripColumn**: Column-based multiline string handling with enclosing pipes
 - **Diff**: Visual side-by-side text comparison with precise difference highlighting
+- **CompareStrings**: Test framework style string comparison with invisible character visualization
 - **Whitespace visualization**: Shows invisible characters when comparing text
 - **Cross-platform line endings**: Automatic normalization of Unix, Windows, and Mac line endings
 - **Unicode support**: Works with international characters and emojis
@@ -387,6 +540,8 @@ make mod-tidy
 - `StripMargin(s string) string` - Process multiline strings with margin pipes
 - `StripColumn(s string) string` - Process multiline strings with enclosing pipes
 - `Diff(expected string, actual string) (string, bool)` - Compare two strings and return visual diff
+- `CompareStrings(actual, expected string) string` - Test framework style string comparison with visualization
+- `CompareStringsRaw(actual, expected string) string` - String comparison without character visualization
 
 ### How StripMargin Works
 
@@ -426,7 +581,7 @@ The function uses a regular expression to find lines that are enclosed by pipe c
 
 The project includes comprehensive tests:
 
-- **Unit tests** (`strip_margin_test.go`, `text_diff_test.go`) - Test all public functions
+- **Unit tests** (`strip_margin_test.go`, `text_diff_test.go`, `string_diff_test.go`) - Test all public functions
 - **Edge case testing** - Empty inputs, unicode content, large inputs, whitespace differences
 - **Performance benchmarks** - Ensure efficient processing
 - **Table-driven tests** - Comprehensive scenario coverage
@@ -461,3 +616,11 @@ Tests use black box testing to ensure they only test public APIs, providing vali
 - **Documentation**: Showing before/after examples
 - **Data validation**: Comparing processed vs expected data formats
 - **Debugging**: Understanding discrepancies in text processing
+
+### CompareStrings Use Cases
+- **Testing frameworks**: Detailed assertion failure messages with exact difference locations
+- **Unit test debugging**: Understanding why string comparisons fail, especially with whitespace
+- **Data processing validation**: Ensuring text transformations produce exact expected results
+- **Configuration testing**: Validating that config generation produces expected output
+- **Template testing**: Verifying template rendering produces exact expected content
+- **Protoc
