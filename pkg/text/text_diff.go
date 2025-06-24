@@ -70,6 +70,15 @@ func splitLines(text string) []string {
 	return strings.Split(withVisibleWS, "\n")
 }
 
+// hasTrailingNewline checks if the original text ends with a newline character
+func hasTrailingNewline(text string) bool {
+	if len(text) == 0 {
+		return false
+	}
+	normalized := normalizeLineEndings(text)
+	return strings.HasSuffix(normalized, "\n")
+}
+
 // Diff compares two strings and outputs a diff format and a boolean value to indicate if the two strings matched
 func Diff(expected string, actual string) (string, bool) {
 	expectedArr := splitLines(expected)
@@ -94,6 +103,12 @@ func Diff(expected string, actual string) (string, bool) {
 	minVal := min(len(expectedArr), len(actualArr))
 	var sb strings.Builder
 	status := true
+
+	// Determine if we should add trailing newlines based on input
+	expectedHasTrailing := hasTrailingNewline(expected)
+	actualHasTrailing := hasTrailingNewline(actual)
+	shouldAddTrailingNewline := expectedHasTrailing || actualHasTrailing
+
 	sb.WriteString(rpad("Expected", width) + ` | ` + rpad("Actual", width) + "\n")
 	sb.WriteString(strings.Repeat(`-`, width) + ` | ` + strings.Repeat(`-`, width) + "\n")
 
@@ -104,7 +119,11 @@ func Diff(expected string, actual string) (string, bool) {
 			expected, actual := expectedArr[i], actualArr[i]
 			sb.WriteString(rpad(expected, width) + " \u2260 " + rpad(actual, width) + "\n")
 			sd := stringDiff(expectedArr[i], actualArr[i])
-			sb.WriteString(rpad(sd, width) + `   ` + rpad(sd, width) + "\n")
+			line := rpad(sd, width) + `   ` + rpad(sd, width)
+			if shouldAddTrailingNewline {
+				line += "\n"
+			}
+			sb.WriteString(line)
 			return sb.String(), false
 		}
 	}
@@ -115,7 +134,11 @@ func Diff(expected string, actual string) (string, bool) {
 		if utf8.RuneCountInString(expectedStr) == 0 {
 			expectedStr = `␤`
 		}
-		sb.WriteString(rpad(expectedStr, width) + " \u2190 " + rpad(actualStr, width) + "\n")
+		line := rpad(expectedStr, width) + " \u2190 " + rpad(actualStr, width)
+		if shouldAddTrailingNewline {
+			line += "\n"
+		}
+		sb.WriteString(line)
 		status = false
 	} else if len(expectedArr) < len(actualArr) {
 		expectedStr := ``
@@ -123,9 +146,20 @@ func Diff(expected string, actual string) (string, bool) {
 		if utf8.RuneCountInString(actualStr) == 0 {
 			actualStr = `␤`
 		}
-		sb.WriteString(rpad(expectedStr, width) + " \u2192 " + rpad(actualStr, width) + "\n")
+		line := rpad(expectedStr, width) + " \u2192 " + rpad(actualStr, width)
+		if shouldAddTrailingNewline {
+			line += "\n"
+		}
+		sb.WriteString(line)
 		status = false
 	}
 
-	return sb.String(), status
+	// For identical strings, we need to remove the final trailing newline
+	// if the input strings don't have trailing newlines
+	result := sb.String()
+	if status && !shouldAddTrailingNewline && strings.HasSuffix(result, "\n") {
+		result = strings.TrimSuffix(result, "\n")
+	}
+
+	return result, status
 }

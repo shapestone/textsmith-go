@@ -20,7 +20,6 @@ func TestDiff_OutputFormat_WithTabSpaceDifference_ShowsCorrectFormat(t *testing.
 		|----------- | -----------|
 		|hello␉world ≠ hello␣world|
 		|     △             △     |
-		||
 	`)
 
 	// - Verify match
@@ -47,7 +46,6 @@ func TestDiff_OutputFormat_WithIdenticalStrings_ShowsHeaderOnly(t *testing.T) {
 		|Expected    | Actual     |
 		|----------- | -----------|
 		|hello␣world | hello␣world|
-		||
 	`)
 
 	// - Verify match
@@ -75,7 +73,6 @@ func TestDiff_OutputFormat_WithSimpleDifference_ShowsExactFormat(t *testing.T) {
 		|-------- | --------|
 		|hello    ≠ help!   |
 		|   △          △    |
-		||
 	`)
 
 	// - Verify match
@@ -104,7 +101,6 @@ func TestDiff_OutputFormat_WithExpectedLongerThanActual_ShowsLeftArrow(t *testin
 		|line1    | line1   |
 		|line2    | line2   |
 		|line3    ←         |
-		||
 	`)
 
 	// - Verify match
@@ -133,7 +129,6 @@ func TestDiff_OutputFormat_WithActualLongerThanExpected_ShowsRightArrow(t *testi
 		|line1    | line1   |
 		|line2    | line2   |
 		|         → line3   |
-		||
 	`)
 
 	// - Verify match
@@ -190,7 +185,6 @@ func TestDiff_OutputFormat_WithComplexWhitespace_ShowsAllWhitespaceSymbols(t *te
 		|------------ | ------------|
 		|hello␉␣world ≠ hello␣␣world|
 		|     △              △      |
-		||
 	`)
 
 	// - Verify match
@@ -218,7 +212,6 @@ func TestDiff_OutputFormat_WithDifferentLengthStrings_ShowsProperAlignment(t *te
 		|---------------- | ----------------|
 		|short            ≠ very␣long␣string|
 		|△                  △               |
-		||
 	`)
 
 	// - Verify match
@@ -246,7 +239,6 @@ func TestDiff_OutputFormat_WithMultipleSpacesAndTabs_ShowsAllInvisibleChars(t *t
 		|------------- | -------------|
 		|hello␉␉␣world ≠ hello␣␣␣world|
 		|     △               △       |
-		||
 	`)
 
 	// - Verify match
@@ -274,7 +266,6 @@ func TestDiff_OutputFormat_WithOnlyWhitespace_ShowsOnlyWhitespaceSymbols(t *test
 		|-------- | --------|
 		|␣␣␣      ≠ ␉␉␉     |
 		|△          △       |
-		||
 	`)
 
 	// - Verify match
@@ -301,7 +292,6 @@ func TestDiff_OutputFormat_WithEmptyStrings_ShowsEmptyComparison(t *testing.T) {
 		|Expected | Actual  |
 		|-------- | --------|
 		|         |         |
-		||
 	`)
 
 	// - Verify match
@@ -329,7 +319,6 @@ func TestDiff_OutputFormat_WithMultilineStrings_ShowsCorrectStructure(t *testing
 		|----------- | -----------|
 		|first␣line  | first␣line |
 		|second␣line | second␣line|
-		||
 	`)
 
 	// - Verify match
@@ -357,7 +346,6 @@ func TestDiff_OutputFormat_WithUnicodeContent_PreservesUnicode(t *testing.T) {
 		|------------- | -------------|
 		|Hello␣🌍␣World ≠ Hello␣🚀␣World|
 		|      △               △      |
-		||
 	`)
 
 	// - Verify match
@@ -386,7 +374,6 @@ func TestDiff_OutputFormat_WithMixedWhitespaceTypes_ShowsAllCorrectly(t *testing
 		|line1    | line1   |
 		|␉line2   ≠ ␣line2  |
 		|△          △       |
-		||
 	`)
 
 	// - Verify match
@@ -415,7 +402,6 @@ func TestDiff_CrossPlatform_WindowsVsUnixLineEndings_ShouldMatch(t *testing.T) {
 		|line1    | line1   |
 		|line2    | line2   |
 		|line3    | line3   |
-		||
 	`)
 
 	// Should match because line endings are normalized
@@ -443,7 +429,6 @@ func TestDiff_CrossPlatform_ClassicMacVsUnixLineEndings_ShouldMatch(t *testing.T
 		|line1    | line1   |
 		|line2    | line2   |
 		|line3    | line3   |
-		||
 	`)
 
 	// Should match because line endings are normalized
@@ -472,7 +457,6 @@ func TestDiff_CrossPlatform_MixedLineEndings_ShouldNormalize(t *testing.T) {
 		|line2    | line2   |
 		|line3    | line3   |
 		|line4    | line4   |
-		||
 	`)
 
 	// Should match because all line endings are normalized to \n
@@ -500,7 +484,6 @@ func TestDiff_CrossPlatform_EmptyLinesWithDifferentEndings_ShouldMatch(t *testin
 		|line1    | line1   |
 		|         |         |
 		|line3    | line3   |
-		||
 	`)
 
 	// Should match because line endings are normalized
@@ -541,14 +524,9 @@ func TestDiff_CrossPlatform_TrailingLineEndingsDifferent_ShouldMatch(t *testing.
 	}
 }
 
-// compareMultilineStrings compares two multi-line strings by splitting them into lines
-// and using CompareStringsRaw for detailed character-level comparison of each line.
-// Uses the raw version to avoid double conversion of invisible characters.
+// compareMultilineStrings compares two multi-line strings with detailed analysis
+// and provides helpful debugging information when strings don't match.
 func compareMultilineStrings(actual, expected string) string {
-	actualLines := strings.Split(actual, "\n")
-	expectedLines := strings.Split(expected, "\n")
-	maxLines := max(len(actualLines), len(expectedLines))
-
 	var result strings.Builder
 	result.WriteString("=== Multi-line String Comparison ===\n\n")
 
@@ -558,45 +536,95 @@ func compareMultilineStrings(actual, expected string) string {
 		return result.String()
 	}
 
-	result.WriteString("✗ Strings differ - Line-by-line analysis:\n\n")
+	result.WriteString("✗ Strings differ\n\n")
 
-	hasAnyDifferences := false
+	// First, show the raw string comparison for overall differences
+	result.WriteString("Overall string comparison:\n")
+	overallComparison := CompareStringsRaw(actual, expected)
+	indentedOverall := strings.ReplaceAll(overallComparison, "\n", "\n  ")
+	result.WriteString("  " + indentedOverall)
+	result.WriteString("\n")
+
+	// Then do line-by-line analysis
+	actualLines := strings.Split(actual, "\n")
+	expectedLines := strings.Split(expected, "\n")
+	maxLines := max(len(actualLines), len(expectedLines))
+
+	result.WriteString("Line-by-line analysis:\n")
+
+	hasLineDifferences := false
 
 	for i := 0; i < maxLines; i++ {
 		var actualLine, expectedLine string
+		var actualExists, expectedExists bool
 
 		// Get lines or empty string if beyond bounds
 		if i < len(actualLines) {
 			actualLine = actualLines[i]
+			actualExists = true
 		}
 		if i < len(expectedLines) {
 			expectedLine = expectedLines[i]
+			expectedExists = true
 		}
 
-		// Check if this line differs
+		// Check various difference conditions
 		lineMatches := actualLine == expectedLine
+		isExtraLine := !actualExists || !expectedExists
 
-		if !lineMatches {
-			hasAnyDifferences = true
-			result.WriteString(fmt.Sprintf("Line %d differs:\n", i+1))
+		if !lineMatches || isExtraLine {
+			hasLineDifferences = true
 
-			// Use CompareStringsRaw for detailed character-level analysis without double conversion
-			lineComparison := CompareStringsRaw(actualLine, expectedLine)
+			if isExtraLine {
+				if !actualExists {
+					result.WriteString(fmt.Sprintf("Line %d: Missing in actual (expected: %q)\n", i+1, expectedLine))
+				} else {
+					result.WriteString(fmt.Sprintf("Line %d: Extra in actual (actual: %q)\n", i+1, actualLine))
+				}
+			} else {
+				result.WriteString(fmt.Sprintf("Line %d differs:\n", i+1))
+				lineComparison := CompareStringsRaw(actualLine, expectedLine)
+				indentedComparison := strings.ReplaceAll(lineComparison, "\n", "\n    ")
+				result.WriteString("    " + indentedComparison)
+				result.WriteString("\n")
+			}
+		}
+	}
 
-			// Indent the comparison output
-			indentedComparison := strings.ReplaceAll(lineComparison, "\n", "\n  ")
-			result.WriteString("  " + indentedComparison)
-			result.WriteString("\n")
+	// Handle the case where strings differ but all lines match (trailing newline differences)
+	if !hasLineDifferences && actual != expected {
+		result.WriteString("No line content differences found.\n")
+		result.WriteString("Difference is likely in trailing characters (newlines, spaces, etc.)\n")
+
+		// Show character-by-character comparison
+		result.WriteString("\nCharacter-by-character analysis:\n")
+		result.WriteString(fmt.Sprintf("Actual length: %d, Expected length: %d\n", len(actual), len(expected)))
+
+		minLen := min(len(actual), len(expected))
+		for i := 0; i < minLen; i++ {
+			if actual[i] != expected[i] {
+				result.WriteString(fmt.Sprintf("First difference at position %d:\n", i))
+				result.WriteString(fmt.Sprintf("  Actual: %q (0x%02X)\n", actual[i], actual[i]))
+				result.WriteString(fmt.Sprintf("  Expected: %q (0x%02X)\n", expected[i], expected[i]))
+				break
+			}
+		}
+
+		if len(actual) != len(expected) {
+			result.WriteString("Length difference detected:\n")
+			if len(actual) > len(expected) {
+				result.WriteString(fmt.Sprintf("  Actual has %d extra characters: %q\n",
+					len(actual)-len(expected), actual[len(expected):]))
+			} else {
+				result.WriteString(fmt.Sprintf("  Expected has %d extra characters: %q\n",
+					len(expected)-len(actual), expected[len(actual):]))
+			}
 		}
 	}
 
 	// Summary
-	if !hasAnyDifferences {
-		result.WriteString("No line differences found (this shouldn't happen if strings don't match)\n")
-	} else {
-		result.WriteString(fmt.Sprintf("Total lines compared: %d\n", maxLines))
-		result.WriteString(fmt.Sprintf("Actual lines: %d, Expected lines: %d\n", len(actualLines), len(expectedLines)))
-	}
+	result.WriteString(fmt.Sprintf("\nSummary: Total lines compared: %d\n", maxLines))
+	result.WriteString(fmt.Sprintf("Actual lines: %d, Expected lines: %d\n", len(actualLines), len(expectedLines)))
 
 	return result.String()
 }
