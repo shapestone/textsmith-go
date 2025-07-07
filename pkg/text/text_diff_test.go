@@ -6,6 +6,8 @@ import (
 	"testing"
 )
 
+// Acceptance tests for public API behavior and exact output formatting
+
 func TestDiff_OutputFormat_WithTabSpaceDifference_ShowsCorrectFormat(t *testing.T) {
 	// Given
 	a := "hello\tworld"
@@ -540,7 +542,7 @@ func compareMultilineStrings(actual, expected string) string {
 
 	// First, show the raw string comparison for overall differences
 	result.WriteString("Overall string comparison:\n")
-	overallComparison := CompareStringsRaw(actual, expected)
+	overallComparison, _ := Diff(actual, expected)
 	indentedOverall := strings.ReplaceAll(overallComparison, "\n", "\n  ")
 	result.WriteString("  " + indentedOverall)
 	result.WriteString("\n")
@@ -583,7 +585,7 @@ func compareMultilineStrings(actual, expected string) string {
 				}
 			} else {
 				result.WriteString(fmt.Sprintf("Line %d differs:\n", i+1))
-				lineComparison := CompareStringsRaw(actualLine, expectedLine)
+				lineComparison, _ := Diff(actualLine, expectedLine)
 				indentedComparison := strings.ReplaceAll(lineComparison, "\n", "\n    ")
 				result.WriteString("    " + indentedComparison)
 				result.WriteString("\n")

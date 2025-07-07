@@ -624,3 +624,6 @@ Tests use black box testing to ensure they only test public APIs, providing vali
 - **Configuration testing**: Validating that config generation produces expected output
 - **Template testing**: Verifying template rendering produces exact expected content
 - **Protoc
+
+## Future Considerations
+- No special support for extremely long lines that might need wrapping

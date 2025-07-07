@@ -5,6 +5,32 @@ import (
 	"unicode/utf8"
 )
 
+// DiffResult represents the result of comparing two strings
+type DiffResult struct {
+	Lines         []DiffLine
+	ExpectedWidth int
+	ActualWidth   int
+	Match         bool
+	HasTrailingNL bool
+}
+
+// DiffLine represents a single line comparison
+type DiffLine struct {
+	Expected string
+	Actual   string
+	Status   DiffStatus
+}
+
+// DiffStatus indicates the type of difference in a line
+type DiffStatus int
+
+const (
+	DiffStatusEqual DiffStatus = iota
+	DiffStatusDifferent
+	DiffStatusMissingInActual
+	DiffStatusMissingInExpected
+)
+
 // rpad is a right space padding function
 func rpad(str string, length int) string {
 	rc := length - utf8.RuneCountInString(str)
@@ -31,10 +57,12 @@ func stringDiff(a, b string) string {
 
 // normalizeLineEndings converts all line endings to \n for consistent processing
 func normalizeLineEndings(text string) string {
-	// Replace Windows CRLF (\r\n) with LF (\n) first to avoid double conversion
+	// Replace Windows CRLF (\r\n) with LF (\n) first
+	// This must be done before replacing standalone \r to avoid double conversion
 	text = strings.ReplaceAll(text, "\r\n", "\n")
 	// Replace remaining CR (\r) with LF (\n) for classic Mac compatibility
 	text = strings.ReplaceAll(text, "\r", "\n")
+
 	return text
 }
 
@@ -64,10 +92,23 @@ func showWhitespaces(orig string) string {
 
 // splitLines splits text into lines while handling cross-platform line endings
 func splitLines(text string) []string {
-	// Normalize line endings first, then apply whitespace visualization
+	// Only normalize line endings for consistent processing
 	normalized := normalizeLineEndings(text)
-	withVisibleWS := showWhitespaces(normalized)
-	return strings.Split(withVisibleWS, "\n")
+
+	// Handle empty string case
+	if normalized == "" {
+		return []string{""}
+	}
+
+	lines := strings.Split(normalized, "\n")
+
+	// Remove the final empty string only if it results from a trailing newline
+	// This preserves the correct line count for strings that are all newlines
+	if len(lines) > 1 && lines[len(lines)-1] == "" {
+		lines = lines[:len(lines)-1]
+	}
+
+	return lines
 }
 
 // hasTrailingNewline checks if the original text ends with a newline character
@@ -79,87 +120,201 @@ func hasTrailingNewline(text string) bool {
 	return strings.HasSuffix(normalized, "\n")
 }
 
-// Diff compares two strings and outputs a diff format and a boolean value to indicate if the two strings matched
-func Diff(expected string, actual string) (string, bool) {
-	expectedArr := splitLines(expected)
-	// find the longest string in an array of strings
-	expectedWidth := utf8.RuneCountInString("Expected")
-	for _, s := range expectedArr {
-		if expectedWidth < utf8.RuneCountInString(s) {
-			expectedWidth = utf8.RuneCountInString(s)
+// runesEqual compares two rune slices for equality
+func runesEqual(a, b []rune) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if a[i] != b[i] {
+			return false
 		}
 	}
+	return true
+}
 
-	actualArr := splitLines(actual)
-	// find the longest string in an array of strings
-	actualWidth := utf8.RuneCountInString("Actual")
-	for _, s := range actualArr {
-		if actualWidth < utf8.RuneCountInString(s) {
-			actualWidth = utf8.RuneCountInString(s)
-		}
-	}
-	width := max(expectedWidth, actualWidth)
-
-	minVal := min(len(expectedArr), len(actualArr))
-	var sb strings.Builder
-	status := true
-
-	// Determine if we should add trailing newlines based on input
+// computeDiff performs the diff computation and returns a structured result
+func computeDiff(expected string, actual string) DiffResult {
 	expectedHasTrailing := hasTrailingNewline(expected)
 	actualHasTrailing := hasTrailingNewline(actual)
+
+	expectedArr := splitLines(expected)
+	actualArr := splitLines(actual)
+
+	// Convert lines to runes for proper Unicode comparison
+	expectedRunes := make([][]rune, len(expectedArr))
+	actualRunes := make([][]rune, len(actualArr))
+
+	for i, line := range expectedArr {
+		expectedRunes[i] = []rune(line)
+	}
+	for i, line := range actualArr {
+		actualRunes[i] = []rune(line)
+	}
+
+	// Calculate maximum width for both columns based on visible characters
+	expectedWidth := utf8.RuneCountInString("Expected")
+	for _, s := range expectedArr {
+		visible := showWhitespaces(s)
+		if w := utf8.RuneCountInString(visible); w > expectedWidth {
+			expectedWidth = w
+		}
+	}
+
+	actualWidth := utf8.RuneCountInString("Actual")
+	for _, s := range actualArr {
+		visible := showWhitespaces(s)
+		if w := utf8.RuneCountInString(visible); w > actualWidth {
+			actualWidth = w
+		}
+	}
+
+	// Use the same width for both columns (maximum of both)
+	maxWidth := max(expectedWidth, actualWidth)
+
+	minVal := min(len(expectedRunes), len(actualRunes))
+	var lines []DiffLine
+	match := true
+	foundDifference := false
+
+	// Determine if we should add trailing newlines based on input
 	shouldAddTrailingNewline := expectedHasTrailing || actualHasTrailing
 
+	// Compare common lines using rune comparison
+	for i := 0; i < minVal; i++ {
+		if runesEqual(expectedRunes[i], actualRunes[i]) {
+			lines = append(lines, DiffLine{
+				Expected: expectedArr[i],
+				Actual:   actualArr[i],
+				Status:   DiffStatusEqual,
+			})
+		} else {
+			lines = append(lines, DiffLine{
+				Expected: expectedArr[i],
+				Actual:   actualArr[i],
+				Status:   DiffStatusDifferent,
+			})
+			match = false
+			foundDifference = true
+			break // Stop at first difference for large texts
+		}
+	}
+
+	// Only process remaining lines if we haven't found a difference yet OR if the strings have different lengths
+	if !foundDifference || len(expectedRunes) != len(actualRunes) {
+		// Handle remaining lines in expected
+		for i := minVal; i < len(expectedRunes); i++ {
+			expectedStr := expectedArr[i]
+			lines = append(lines, DiffLine{
+				Expected: expectedStr,
+				Actual:   "",
+				Status:   DiffStatusMissingInActual,
+			})
+			match = false
+		}
+
+		// Handle remaining lines in actual
+		for i := minVal; i < len(actualRunes); i++ {
+			actualStr := actualArr[i]
+			lines = append(lines, DiffLine{
+				Expected: "",
+				Actual:   actualStr,
+				Status:   DiffStatusMissingInExpected,
+			})
+			match = false
+		}
+	}
+
+	// Handle trailing newlines - this section needs to be outside the previous conditional
+	// to ensure it's always processed when there are trailing newline differences
+	if expectedHasTrailing != actualHasTrailing {
+		if expectedHasTrailing && !actualHasTrailing {
+			lines = append(lines, DiffLine{
+				Expected: `␤`,
+				Actual:   "",
+				Status:   DiffStatusMissingInActual,
+			})
+			match = false
+		} else if !expectedHasTrailing && actualHasTrailing {
+			lines = append(lines, DiffLine{
+				Expected: "",
+				Actual:   `␤`,
+				Status:   DiffStatusMissingInExpected,
+			})
+			match = false
+		}
+	} else if expectedHasTrailing && actualHasTrailing && !foundDifference && len(expectedRunes) == len(actualRunes) {
+		// Both have trailing newlines, no content differences found, and same number of lines
+		// Add an empty line to represent the trailing newline effect
+		lines = append(lines, DiffLine{
+			Expected: "",
+			Actual:   "",
+			Status:   DiffStatusEqual,
+		})
+	}
+
+	return DiffResult{
+		Lines:         lines,
+		ExpectedWidth: maxWidth,
+		ActualWidth:   maxWidth,
+		Match:         match,
+		HasTrailingNL: shouldAddTrailingNewline,
+	}
+}
+
+// renderDiff converts a DiffResult into a visual string representation
+func renderDiff(result DiffResult) string {
+	var sb strings.Builder
+	width := result.ExpectedWidth
+
+	// Header
 	sb.WriteString(rpad("Expected", width) + ` | ` + rpad("Actual", width) + "\n")
 	sb.WriteString(strings.Repeat(`-`, width) + ` | ` + strings.Repeat(`-`, width) + "\n")
 
-	for i := 0; i < minVal; i++ {
-		if expectedArr[i] == actualArr[i] {
-			sb.WriteString(rpad(expectedArr[i], width) + ` | ` + rpad(actualArr[i], width) + "\n")
-		} else if expectedArr[i] != actualArr[i] {
-			expected, actual := expectedArr[i], actualArr[i]
-			sb.WriteString(rpad(expected, width) + " \u2260 " + rpad(actual, width) + "\n")
-			sd := stringDiff(expectedArr[i], actualArr[i])
+	// Content lines
+	for _, line := range result.Lines {
+		// Apply whitespace visualization only during rendering
+		expectedVisible := showWhitespaces(line.Expected)
+		actualVisible := showWhitespaces(line.Actual)
+
+		switch line.Status {
+		case DiffStatusEqual:
+			sb.WriteString(rpad(expectedVisible, width) + ` | ` + rpad(actualVisible, width) + "\n")
+		case DiffStatusDifferent:
+			sb.WriteString(rpad(expectedVisible, width) + " \u2260 " + rpad(actualVisible, width) + "\n")
+			sd := stringDiff(expectedVisible, actualVisible)
 			line := rpad(sd, width) + `   ` + rpad(sd, width)
-			if shouldAddTrailingNewline {
+			if result.HasTrailingNL {
 				line += "\n"
 			}
 			sb.WriteString(line)
-			return sb.String(), false
+			return sb.String()
+		case DiffStatusMissingInActual:
+			line := rpad(expectedVisible, width) + " \u2190 " + rpad(actualVisible, width)
+			if result.HasTrailingNL {
+				line += "\n"
+			}
+			sb.WriteString(line)
+		case DiffStatusMissingInExpected:
+			line := rpad(expectedVisible, width) + " \u2192 " + rpad(actualVisible, width)
+			if result.HasTrailingNL {
+				line += "\n"
+			}
+			sb.WriteString(line)
 		}
 	}
 
-	if len(expectedArr) > len(actualArr) {
-		expectedStr := expectedArr[minVal]
-		actualStr := ``
-		if utf8.RuneCountInString(expectedStr) == 0 {
-			expectedStr = `␤`
-		}
-		line := rpad(expectedStr, width) + " \u2190 " + rpad(actualStr, width)
-		if shouldAddTrailingNewline {
-			line += "\n"
-		}
-		sb.WriteString(line)
-		status = false
-	} else if len(expectedArr) < len(actualArr) {
-		expectedStr := ``
-		actualStr := actualArr[minVal]
-		if utf8.RuneCountInString(actualStr) == 0 {
-			actualStr = `␤`
-		}
-		line := rpad(expectedStr, width) + " \u2192 " + rpad(actualStr, width)
-		if shouldAddTrailingNewline {
-			line += "\n"
-		}
-		sb.WriteString(line)
-		status = false
+	// For identical strings, remove final trailing newline if input doesn't have trailing newlines
+	output := sb.String()
+	if result.Match && !result.HasTrailingNL && strings.HasSuffix(output, "\n") {
+		output = strings.TrimSuffix(output, "\n")
 	}
 
-	// For identical strings, we need to remove the final trailing newline
-	// if the input strings don't have trailing newlines
-	result := sb.String()
-	if status && !shouldAddTrailingNewline && strings.HasSuffix(result, "\n") {
-		result = strings.TrimSuffix(result, "\n")
-	}
+	return output
+}
 
-	return result, status
+// Diff compares two strings and outputs a diff format and a boolean value to indicate if the two strings matched
+func Diff(expected string, actual string) (string, bool) {
+	result := computeDiff(expected, actual)
+	return renderDiff(result), result.Match
 }
