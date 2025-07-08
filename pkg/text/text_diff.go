@@ -55,17 +55,6 @@ func stringDiff(a, b string) string {
 	return strings.Repeat(" ", i) + "\u25B3"
 }
 
-// normalizeLineEndings converts all line endings to \n for consistent processing
-func normalizeLineEndings(text string) string {
-	// Replace Windows CRLF (\r\n) with LF (\n) first
-	// This must be done before replacing standalone \r to avoid double conversion
-	text = strings.ReplaceAll(text, "\r\n", "\n")
-	// Replace remaining CR (\r) with LF (\n) for classic Mac compatibility
-	text = strings.ReplaceAll(text, "\r", "\n")
-
-	return text
-}
-
 func showWhitespaces(orig string) string {
 	var builder strings.Builder
 
@@ -90,17 +79,14 @@ func showWhitespaces(orig string) string {
 	return builder.String()
 }
 
-// splitLines splits text into lines while handling cross-platform line endings
+// splitLines splits text into lines without normalizing line endings
 func splitLines(text string) []string {
-	// Only normalize line endings for consistent processing
-	normalized := normalizeLineEndings(text)
-
 	// Handle empty string case
-	if normalized == "" {
+	if text == "" {
 		return []string{""}
 	}
 
-	lines := strings.Split(normalized, "\n")
+	lines := strings.Split(text, "\n")
 
 	// Remove the final empty string only if it results from a trailing newline
 	// This preserves the correct line count for strings that are all newlines
@@ -116,8 +102,7 @@ func hasTrailingNewline(text string) bool {
 	if len(text) == 0 {
 		return false
 	}
-	normalized := normalizeLineEndings(text)
-	return strings.HasSuffix(normalized, "\n")
+	return strings.HasSuffix(text, "\n")
 }
 
 // runesEqual compares two rune slices for equality
