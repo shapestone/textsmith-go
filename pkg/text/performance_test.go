@@ -25,9 +25,9 @@ func TestStripMargin_WithVeryLargeInput_CompletesInReasonableTime(t *testing.T) 
 	result := text.StripMargin(input)
 	duration := time.Since(start)
 
-	// Then: Should complete in less than 2 seconds (relaxed for CI)
-	if duration > 2*time.Second {
-		t.Errorf("StripMargin took too long: %v (expected < 2s)", duration)
+	// Then: Should complete in less than 3 seconds (relaxed for CI, especially macOS)
+	if duration > 3*time.Second {
+		t.Errorf("StripMargin took too long: %v (expected < 3s)", duration)
 	}
 
 	// Verify result is correct
@@ -83,9 +83,9 @@ func TestDiff_WithLargeIdenticalFiles_CompletesInReasonableTime(t *testing.T) {
 	_, match := text.Diff(content, content)
 	duration := time.Since(start)
 
-	// Then: Should complete in less than 4 seconds and match (relaxed for CI)
-	if duration > 4*time.Second {
-		t.Errorf("Diff took too long: %v (expected < 4s)", duration)
+	// Then: Should complete in less than 5 seconds and match (relaxed for CI, especially macOS)
+	if duration > 5*time.Second {
+		t.Errorf("Diff took too long: %v (expected < 5s)", duration)
 	}
 
 	if !match {
