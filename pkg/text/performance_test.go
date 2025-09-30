@@ -119,9 +119,9 @@ func TestDiff_WithLargeDifferentFiles_StopsAtFirstDifference(t *testing.T) {
 	output, match := text.Diff(expected, actual)
 	duration := time.Since(start)
 
-	// Then: Should complete quickly due to early exit (< 1s, relaxed for CI)
-	if duration > time.Second {
-		t.Errorf("Diff took too long: %v (expected < 1s due to early exit)", duration)
+	// Then: Should complete quickly due to early exit (< 2s, relaxed for CI, especially macOS)
+	if duration > 2*time.Second {
+		t.Errorf("Diff took too long: %v (expected < 2s due to early exit)", duration)
 	}
 
 	if match {
