@@ -2,7 +2,6 @@
 
 [![CI](https://github.com/shapestone/textsmith-go/workflows/CI/badge.svg)](https://github.com/shapestone/textsmith-go/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/shapestone/textsmith-go/workflows/CodeQL%20Security%20Analysis/badge.svg)](https://github.com/shapestone/textsmith-go/actions/workflows/codeql.yml)
-[![codecov](https://codecov.io/gh/shapestone/textsmith-go/branch/main/graph/badge.svg)](https://codecov.io/gh/shapestone/textsmith-go)
 [![Go Report Card](https://goreportcard.com/badge/github.com/shapestone/textsmith)](https://goreportcard.com/report/github.com/shapestone/textsmith)
 [![Go Reference](https://pkg.go.dev/badge/github.com/shapestone/textsmith.svg)](https://pkg.go.dev/github.com/shapestone/textsmith)
 
