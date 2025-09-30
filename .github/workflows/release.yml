@@ -103,28 +103,28 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Create GitHub Release
-        uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ steps.get_version.outputs.VERSION }}
-          release_name: Release ${{ steps.get_version.outputs.VERSION }}
-          body: |
-            # ${{ steps.get_version.outputs.VERSION }}
+        run: |
+          gh release create "${{ steps.get_version.outputs.VERSION }}" \
+            --repo="${GITHUB_REPOSITORY}" \
+            --title="Release ${{ steps.get_version.outputs.VERSION }}" \
+            --notes="$(cat <<'EOF'
+          # ${{ steps.get_version.outputs.VERSION }}
 
-            ${{ steps.changelog.outputs.CHANGELOG }}
+          ${{ steps.changelog.outputs.CHANGELOG }}
 
-            ## Installation
+          ## Installation
 
-            ```bash
-            go get github.com/shapestone/textsmith@${{ steps.get_version.outputs.VERSION }}
-            ```
+          \`\`\`bash
+          go get github.com/shapestone/textsmith@${{ steps.get_version.outputs.VERSION }}
+          \`\`\`
 
-            ## Full Changelog
+          ## Full Changelog
 
-            See [CHANGELOG.md](https://github.com/shapestone/textsmith-go/blob/${{ steps.get_version.outputs.VERSION }}/CHANGELOG.md) for complete details.
-          draft: false
-          prerelease: false
+          See [CHANGELOG.md](https://github.com/shapestone/textsmith-go/blob/${{ steps.get_version.outputs.VERSION }}/CHANGELOG.md) for complete details.
+          EOF
+          )"
 
   notify:
     name: Post-release Notifications
