@@ -85,7 +85,7 @@ func FuzzDiff(f *testing.F) {
 			}
 		}()
 
-		output, match := text.Diff(expected, actual)
+		output, match := text.Diff(expected, actual, false)
 
 		// Sanity checks
 		// If strings are identical, match should be true

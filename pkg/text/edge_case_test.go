@@ -49,23 +49,18 @@ func TestStripColumn_WithMixedLineEndings_HandlesCorrectly(t *testing.T) {
 	}
 }
 
-// TestDiff_WithMixedLineEndingsInSameString_HandlesCorrectly tests mixed line endings
-func TestDiff_WithMixedLineEndingsInSameString_HandlesCorrectly(t *testing.T) {
-	// Given: Strings with mixed line endings
+// TestDiff_WithMixedLineEndingsInSameString_NormalizesAndMatches tests mixed line endings
+func TestDiff_WithMixedLineEndingsInSameString_NormalizesAndMatches(t *testing.T) {
+	// Given: Strings with mixed line endings - now normalized
 	expected := "line1\nline2\r\nline3"
 	actual := "line1\r\nline2\nline3"
 
 	// When
-	output, match := text.Diff(expected, actual)
+	_, match := text.Diff(expected, actual, false)
 
-	// Then: Should detect the line ending differences
-	if match {
-		t.Errorf("Expected strings with different line endings to not match")
-	}
-
-	// Should show carriage return symbol
-	if !strings.Contains(output, "␍") {
-		t.Errorf("Expected output to contain carriage return symbol '␍', got: %s", output)
+	// Then: Should match after line ending normalization
+	if !match {
+		t.Errorf("Expected strings with different line endings to match after normalization")
 	}
 }
 
@@ -99,7 +94,7 @@ func TestDiff_WithNullBytes_HandlesGracefully(t *testing.T) {
 		}
 	}()
 
-	output, match := text.Diff(expected, actual)
+	output, match := text.Diff(expected, actual, false)
 
 	// Should detect difference
 	if match {
@@ -169,7 +164,7 @@ func TestDiff_WithInvalidUTF8_HandlesGracefully(t *testing.T) {
 		}
 	}()
 
-	_, _ = text.Diff(expected, actual)
+	_, _ = text.Diff(expected, actual, false)
 	// If we get here without panic, test passes
 }
 
@@ -256,7 +251,7 @@ func TestDiff_WithZeroWidthCharacters_HandlesCorrectly(t *testing.T) {
 	actual := "helloworld"
 
 	// When
-	output, match := text.Diff(expected, actual)
+	output, match := text.Diff(expected, actual, false)
 
 	// Then: Should detect the difference
 	if match {
@@ -295,7 +290,7 @@ func TestDiff_WithBidirectionalText_HandlesCorrectly(t *testing.T) {
 	actual := "Hello مرحبا Mars"
 
 	// When
-	output, match := text.Diff(expected, actual)
+	output, match := text.Diff(expected, actual, false)
 
 	// Then: Should detect the difference
 	if match {
@@ -350,7 +345,7 @@ func TestDiff_WithOnlyWhitespace_HandlesCorrectly(t *testing.T) {
 	actual := "  \t   \n \t "
 
 	// When
-	output, match := text.Diff(expected, actual)
+	output, match := text.Diff(expected, actual, false)
 
 	// Then: Should detect differences in whitespace
 	if match {
@@ -410,7 +405,7 @@ func TestDiff_WithIdenticalEmptyLines_ShowsCorrectly(t *testing.T) {
 	actual := "\n\n\n"
 
 	// When
-	output, match := text.Diff(expected, actual)
+	output, match := text.Diff(expected, actual, false)
 
 	// Then: Should match
 	if !match {
@@ -425,7 +420,7 @@ func TestDiff_WithDifferentEmptyLineCount_DetectsDifference(t *testing.T) {
 	actual := "\n\n\n"
 
 	// When
-	output, match := text.Diff(expected, actual)
+	output, match := text.Diff(expected, actual, false)
 
 	// Then: Should not match
 	if match {

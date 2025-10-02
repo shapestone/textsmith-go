@@ -80,7 +80,7 @@ func TestDiff_WithLargeIdenticalFiles_CompletesInReasonableTime(t *testing.T) {
 
 	// When
 	start := time.Now()
-	_, match := text.Diff(content, content)
+	_, match := text.Diff(content, content, false)
 	duration := time.Since(start)
 
 	// Then: Should complete in less than 5 seconds and match (relaxed for CI, especially macOS)
@@ -116,7 +116,7 @@ func TestDiff_WithLargeDifferentFiles_StopsAtFirstDifference(t *testing.T) {
 
 	// When
 	start := time.Now()
-	output, match := text.Diff(expected, actual)
+	output, match := text.Diff(expected, actual, false)
 	duration := time.Since(start)
 
 	// Then: Should complete quickly due to early exit (< 2s, relaxed for CI, especially macOS)
@@ -145,7 +145,7 @@ func TestDiff_WithVeryLongSingleLine_HandlesCorrectly(t *testing.T) {
 
 	// When
 	start := time.Now()
-	_, match := text.Diff(longString, longString)
+	_, match := text.Diff(longString, longString, false)
 	duration := time.Since(start)
 
 	// Then: Should complete in less than 2 seconds (relaxed for CI)
@@ -171,7 +171,7 @@ func TestDiff_WithVeryLongSingleLineDifference_DetectsDifference(t *testing.T) {
 
 	// When
 	start := time.Now()
-	output, match := text.Diff(expected, actual)
+	output, match := text.Diff(expected, actual, false)
 	duration := time.Since(start)
 
 	// Then: Should complete in less than 2 seconds (relaxed for CI)
@@ -262,7 +262,7 @@ func TestDiff_WithManyShortLines_HandlesCorrectly(t *testing.T) {
 
 	// When
 	start := time.Now()
-	_, match := text.Diff(content, content)
+	_, match := text.Diff(content, content, false)
 	duration := time.Since(start)
 
 	// Then: Should complete in less than 3 seconds

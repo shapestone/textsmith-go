@@ -5,7 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [2.0.0] - 2025-10-02
+
+### Added
+- `normalizeWhitespace` function for whitespace normalization
+- `normalizeLineEndings` function for cross-platform line ending handling
+- `ignoreWhitespace` parameter to `Diff` function for flexible whitespace comparison
+- 11 new line ending normalization tests
+- 11 new whitespace normalization tests
+- 7 new mode toggle pattern tests
+- 15 new dimension-based tests per spec
+- Automatic line ending normalization (Windows/Mac/Unix)
+- Support for dual-mode comparison (exact vs. normalized whitespace)
+
+### Changed
+- **BREAKING**: `Diff` function signature changed from `Diff(expected, actual string)` to `Diff(expected, actual string, ignoreWhitespace bool)`
+  - Migration: Add `false` as third parameter to maintain exact whitespace matching
+  - Use `true` for whitespace-normalized comparison
+- Line endings now automatically normalized to Unix format (`\n`) for all comparisons
+- `splitLines` now normalizes line endings before splitting
+- `hasTrailingNewline` now handles all line ending types (`\n`, `\r\n`, `\r`)
+- Updated all 30+ existing test calls to use new 3-parameter signature
+- Total test count increased from 297 to 308 tests
 
 ## [1.1.0] - 2025-09-29
 
@@ -58,7 +79,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Performance optimizations
 - Documentation with examples
 
-[Unreleased]: https://github.com/shapestone/textsmith-go/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/shapestone/textsmith-go/compare/v2.0.0...HEAD
+[2.0.0]: https://github.com/shapestone/textsmith-go/compare/v1.1.0...v2.0.0
 [1.1.0]: https://github.com/shapestone/textsmith-go/compare/v1.0.1...v1.1.0
 [1.0.1]: https://github.com/shapestone/textsmith-go/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/shapestone/textsmith-go/releases/tag/v1.0.0

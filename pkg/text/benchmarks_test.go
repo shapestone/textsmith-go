@@ -93,7 +93,7 @@ func BenchmarkDiff_IdenticalSmall(b *testing.B) {
 	str := "hello world"
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, _ = text.Diff(str, str)
+		_, _ = text.Diff(str, str, false)
 	}
 }
 
@@ -103,7 +103,7 @@ func BenchmarkDiff_DifferentSmall(b *testing.B) {
 	actual := "hello mars"
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, _ = text.Diff(expected, actual)
+		_, _ = text.Diff(expected, actual, false)
 	}
 }
 
@@ -117,7 +117,7 @@ func BenchmarkDiff_IdenticalMedium(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, _ = text.Diff(str, str)
+		_, _ = text.Diff(str, str, false)
 	}
 }
 
@@ -139,7 +139,7 @@ func BenchmarkDiff_DifferentMedium(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, _ = text.Diff(expected, actual)
+		_, _ = text.Diff(expected, actual, false)
 	}
 }
 
@@ -153,7 +153,7 @@ func BenchmarkDiff_IdenticalLarge(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, _ = text.Diff(str, str)
+		_, _ = text.Diff(str, str, false)
 	}
 }
 
@@ -175,7 +175,7 @@ func BenchmarkDiff_DifferentLargeEarly(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, _ = text.Diff(expected, actual)
+		_, _ = text.Diff(expected, actual, false)
 	}
 }
 
@@ -185,7 +185,7 @@ func BenchmarkDiff_Unicode(b *testing.B) {
 	actual := "Hello 世界! 🌎 This is a test with Unicode characters"
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, _ = text.Diff(expected, actual)
+		_, _ = text.Diff(expected, actual, false)
 	}
 }
 
@@ -260,7 +260,7 @@ func BenchmarkDiff_Allocations(b *testing.B) {
 	b.ReportAllocs()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, _ = text.Diff(expected, actual)
+		_, _ = text.Diff(expected, actual, false)
 	}
 }
 

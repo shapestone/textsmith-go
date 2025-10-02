@@ -79,8 +79,53 @@ func showWhitespaces(orig string) string {
 	return builder.String()
 }
 
-// splitLines splits text into lines without normalizing line endings
+// normalizeWhitespace trims leading/trailing whitespace and collapses
+// internal whitespace sequences to single spaces. Returns empty string for
+// whitespace-only lines.
+func normalizeWhitespace(s string) string {
+	// First trim leading and trailing whitespace
+	trimmed := strings.TrimSpace(s)
+
+	// If empty after trimming, it was whitespace-only
+	if trimmed == "" {
+		return ""
+	}
+
+	// Collapse internal whitespace sequences to single spaces
+	var result strings.Builder
+	inWhitespace := false
+
+	for _, r := range trimmed {
+		if r == ' ' || r == '\t' || r == '\v' || r == '\f' || r == '\r' {
+			if !inWhitespace {
+				result.WriteRune(' ')
+				inWhitespace = true
+			}
+			// Skip additional whitespace characters
+		} else {
+			result.WriteRune(r)
+			inWhitespace = false
+		}
+	}
+
+	return result.String()
+}
+
+// normalizeLineEndings converts all line endings to Unix format (\n).
+// Handles Windows (\r\n), Mac (\r), and Unix (\n) line endings.
+func normalizeLineEndings(s string) string {
+	// Replace Windows line endings first (must come before single \r replacement)
+	s = strings.ReplaceAll(s, "\r\n", "\n")
+	// Replace Mac line endings
+	s = strings.ReplaceAll(s, "\r", "\n")
+	return s
+}
+
+// splitLines splits text into lines after normalizing line endings
 func splitLines(text string) []string {
+	// Normalize line endings first
+	text = normalizeLineEndings(text)
+
 	// Handle empty string case
 	if text == "" {
 		return []string{""}
@@ -98,11 +143,14 @@ func splitLines(text string) []string {
 }
 
 // hasTrailingNewline checks if the original text ends with a newline character
+// Handles all line ending types: \n, \r\n, \r
 func hasTrailingNewline(text string) bool {
 	if len(text) == 0 {
 		return false
 	}
-	return strings.HasSuffix(text, "\n")
+	return strings.HasSuffix(text, "\n") ||
+		strings.HasSuffix(text, "\r\n") ||
+		strings.HasSuffix(text, "\r")
 }
 
 // runesEqual compares two rune slices for equality
@@ -119,7 +167,7 @@ func runesEqual(a, b []rune) bool {
 }
 
 // computeDiff performs the diff computation and returns a structured result
-func computeDiff(expected string, actual string) DiffResult {
+func computeDiff(expected string, actual string, ignoreWhitespace bool) DiffResult {
 	expectedHasTrailing := hasTrailingNewline(expected)
 	actualHasTrailing := hasTrailingNewline(actual)
 
@@ -130,11 +178,21 @@ func computeDiff(expected string, actual string) DiffResult {
 	expectedRunes := make([][]rune, len(expectedArr))
 	actualRunes := make([][]rune, len(actualArr))
 
+	// If ignoreWhitespace is true, also create normalized versions for comparison
+	expectedNormalized := make([][]rune, len(expectedArr))
+	actualNormalized := make([][]rune, len(actualArr))
+
 	for i, line := range expectedArr {
 		expectedRunes[i] = []rune(line)
+		if ignoreWhitespace {
+			expectedNormalized[i] = []rune(normalizeWhitespace(line))
+		}
 	}
 	for i, line := range actualArr {
 		actualRunes[i] = []rune(line)
+		if ignoreWhitespace {
+			actualNormalized[i] = []rune(normalizeWhitespace(line))
+		}
 	}
 
 	// Calculate maximum width for both columns based on visible characters
@@ -167,7 +225,16 @@ func computeDiff(expected string, actual string) DiffResult {
 
 	// Compare common lines using rune comparison
 	for i := 0; i < minVal; i++ {
-		if runesEqual(expectedRunes[i], actualRunes[i]) {
+		var linesEqual bool
+		if ignoreWhitespace {
+			// Compare normalized versions but store original strings
+			linesEqual = runesEqual(expectedNormalized[i], actualNormalized[i])
+		} else {
+			// Compare original versions byte-for-byte
+			linesEqual = runesEqual(expectedRunes[i], actualRunes[i])
+		}
+
+		if linesEqual {
 			lines = append(lines, DiffLine{
 				Expected: expectedArr[i],
 				Actual:   actualArr[i],
@@ -298,8 +365,12 @@ func renderDiff(result DiffResult) string {
 	return output
 }
 
-// Diff compares two strings and outputs a diff format and a boolean value to indicate if the two strings matched
-func Diff(expected string, actual string) (string, bool) {
-	result := computeDiff(expected, actual)
+// Diff compares two strings and outputs a diff format and a boolean value to indicate if the two strings matched.
+// When ignoreWhitespace is true, lines are considered equal if they match after normalizing whitespace
+// (trimming leading/trailing and collapsing internal whitespace to single spaces).
+// When ignoreWhitespace is false, original byte-for-byte comparison is performed.
+// Visual output always shows original whitespace with symbols (␣, ␉, etc.) regardless of the mode.
+func Diff(expected string, actual string, ignoreWhitespace bool) (string, bool) {
+	result := computeDiff(expected, actual, ignoreWhitespace)
 	return renderDiff(result), result.Match
 }

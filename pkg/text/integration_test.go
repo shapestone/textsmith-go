@@ -111,7 +111,7 @@ func TestIntegration_DiffInTestFailure(t *testing.T) {
 	expected := "Line 1\nLine 2\nLine 3\nLine 4"
 	actual := "Line 1\nLine 2\nLine 5\nLine 4"
 
-	diff, match := text.Diff(expected, actual)
+	diff, match := text.Diff(expected, actual, false)
 
 	if match {
 		t.Errorf("Expected strings to not match")
@@ -194,7 +194,7 @@ func TestIntegration_APIResponseComparison(t *testing.T) {
 		|  }
 		|}`)
 
-	diff, match := text.Diff(expectedResponse, actualResponse)
+	diff, match := text.Diff(expectedResponse, actualResponse, false)
 
 	if !match {
 		t.Errorf("Expected identical API responses to match. Diff:\n%s", diff)
@@ -285,7 +285,7 @@ func TestIntegration_ComplexDiffScenario(t *testing.T) {
 		|  new_ui: true
 		|  analytics: true`)
 
-	diff, match := text.Diff(oldConfig, newConfig)
+	diff, match := text.Diff(oldConfig, newConfig, false)
 
 	if match {
 		t.Errorf("Expected configs to differ")

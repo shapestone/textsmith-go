@@ -12,7 +12,7 @@ func TestDiff_ComputeLogic_WithIdenticalStrings_ReturnsMatch(t *testing.T) {
 	actual := "hello world"
 
 	// When
-	_, match := Diff(expected, actual)
+	_, match := Diff(expected, actual, false)
 
 	// Then
 	if !match {
@@ -26,7 +26,7 @@ func TestDiff_ComputeLogic_WithDifferentStrings_ReturnsNoMatch(t *testing.T) {
 	actual := "help!"
 
 	// When
-	_, match := Diff(expected, actual)
+	_, match := Diff(expected, actual, false)
 
 	// Then
 	if match {
@@ -40,7 +40,7 @@ func TestDiff_ComputeLogic_WithMultilineStrings_DetectsDifference(t *testing.T) 
 	actual := "line1\nline2\nline4"
 
 	// When
-	output, match := Diff(expected, actual)
+	output, match := Diff(expected, actual, false)
 
 	// Then
 	if match {
@@ -63,7 +63,7 @@ func TestDiff_ComputeLogic_WithMissingLinesInActual_ShowsMissingIndicator(t *tes
 	actual := "line1\nline2"
 
 	// When
-	output, match := Diff(expected, actual)
+	output, match := Diff(expected, actual, false)
 
 	// Then
 	if match {
@@ -86,7 +86,7 @@ func TestDiff_ComputeLogic_WithMissingLinesInExpected_ShowsMissingIndicator(t *t
 	actual := "line1\nline2\nline3"
 
 	// When
-	output, match := Diff(expected, actual)
+	output, match := Diff(expected, actual, false)
 
 	// Then
 	if match {
@@ -109,7 +109,7 @@ func TestDiff_ComputeLogic_WithTrailingNewlineDifference_DetectsDifference(t *te
 	actual := "hello\nworld\n"
 
 	// When
-	output, match := Diff(expected, actual)
+	output, match := Diff(expected, actual, false)
 
 	// Then
 	if match {
@@ -122,24 +122,23 @@ func TestDiff_ComputeLogic_WithTrailingNewlineDifference_DetectsDifference(t *te
 	}
 }
 
-func TestDiff_ComputeLogic_WithCarriageReturnLineFeed_DetectsDifference(t *testing.T) {
-	// Given
+func TestDiff_ComputeLogic_WithCarriageReturnLineFeed_NormalizesAndMatches(t *testing.T) {
+	// Given - line endings are normalized, so these should match
 	expected := "line1\nline2"
 	actual := "line1\r\nline2"
 
 	// When
-	output, match := Diff(expected, actual)
+	_, match := Diff(expected, actual, false)
 
-	// Then
-	if match {
-		t.Fatalf("Expected Diff to return false when line endings differ (\\n vs \\r\\n), got %t", match)
-	}
-
-	// Should show carriage return symbol
-	if !strings.Contains(output, "␍") {
-		t.Errorf("Expected output to contain carriage return symbol '␍', got: %s", output)
+	// Then - should match after line ending normalization
+	if !match {
+		t.Fatalf("Expected Diff to return true after normalizing line endings (\\n vs \\r\\n), got %t", match)
 	}
 }
+
+// Note: With line ending normalization, all \r characters are converted to \n,
+// so we cannot test CR symbol visualization in content. This is the expected
+// behavior for cross-platform compatibility.
 
 func TestDiff_ComputeLogic_WithTabsAndSpaces_DetectsDifference(t *testing.T) {
 	// Given
@@ -147,7 +146,7 @@ func TestDiff_ComputeLogic_WithTabsAndSpaces_DetectsDifference(t *testing.T) {
 	actual := "hello world"
 
 	// When
-	output, match := Diff(expected, actual)
+	output, match := Diff(expected, actual, false)
 
 	// Then
 	if match {
@@ -171,7 +170,7 @@ func TestDiff_ComputeLogic_WithUnicodeCharacters_HandlesCorrectly(t *testing.T) 
 	actual := "hello 世界!"
 
 	// When
-	output, match := Diff(expected, actual)
+	output, match := Diff(expected, actual, false)
 
 	// Then
 	if match {
@@ -190,7 +189,7 @@ func TestDiff_ComputeLogic_WithEmptyStrings_ReturnsMatch(t *testing.T) {
 	actual := ""
 
 	// When
-	_, match := Diff(expected, actual)
+	_, match := Diff(expected, actual, false)
 
 	// Then
 	if !match {
@@ -204,7 +203,7 @@ func TestDiff_ComputeLogic_WithEmptyVsNonEmpty_DetectsDifference(t *testing.T) {
 	actual := "hello"
 
 	// When
-	output, match := Diff(expected, actual)
+	output, match := Diff(expected, actual, false)
 
 	// Then
 	if match {

@@ -199,8 +199,8 @@ import (
 func main() {
     expected := "hello world"
     actual := "hello universe"
-    
-    diff, match := text.Diff(expected, actual)
+
+    diff, match := text.Diff(expected, actual, false)
     fmt.Printf("Strings match: %t\n", match)
     fmt.Print(diff)
 }
@@ -219,7 +219,7 @@ actual := text.StripMargin(`
     |line 2
     |line 3`)
 
-diff, match := text.Diff(expected, actual)
+diff, match := text.Diff(expected, actual, false)
 fmt.Printf("Match: %t\n", match)
 fmt.Print(diff)
 ```
@@ -239,7 +239,7 @@ line 3   | line 3
 expected := "hello world"
 actual := "hello universe"
 
-diff, match := text.Diff(expected, actual)
+diff, match := text.Diff(expected, actual, false)
 fmt.Printf("Match: %t\n", match)
 fmt.Print(diff)
 ```
@@ -263,7 +263,7 @@ actual := text.StripMargin(`
     |line 2
     |line 3`)
 
-diff, match := text.Diff(expected, actual)
+diff, match := text.Diff(expected, actual, false)
 fmt.Printf("Match: %t\n", match)
 fmt.Print(diff)
 ```
@@ -278,12 +278,12 @@ line 2   | line 2
        → | line 3
 ```
 
-**Whitespace differences:**
+**Whitespace differences (exact mode):**
 ```
 expected := "hello\tworld"  // tab character
 actual := "hello world"     // space character
 
-diff, match := text.Diff(expected, actual)
+diff, match := text.Diff(expected, actual, false)
 fmt.Printf("Match: %t\n", match)
 fmt.Print(diff)
 ```
@@ -297,23 +297,67 @@ hello␉world ≠ hello␣world
      △      |      △
 ```
 
+**Whitespace differences (ignore mode):**
+```
+expected := "hello    world"  // 4 spaces
+actual := "hello world"       // 1 space
+
+diff, match := text.Diff(expected, actual, true)
+fmt.Printf("Match: %t\n", match)
+fmt.Print(diff)
+```
+
+**Output:**
+```
+Match: true
+Expected      | Actual
+------------- | -----------
+hello␣␣␣␣world | hello␣world
+```
+
+Note: When `ignoreWhitespace` is `true`, strings are considered equal if they match after normalizing whitespace (trimming leading/trailing and collapsing internal whitespace). However, the visual output still shows the original whitespace with symbols for debugging.
+
+##### Whitespace Handling Modes
+
+The `Diff` function supports two modes for handling whitespace:
+
+**Exact mode (`ignoreWhitespace = false`):**
+- Byte-for-byte comparison
+- Any whitespace difference causes mismatch
+- Tabs, spaces, and multiple spaces are all treated as different
+
+**Ignore mode (`ignoreWhitespace = true`):**
+- Normalizes whitespace before comparison
+- Trims leading and trailing whitespace
+- Collapses internal whitespace sequences to single spaces
+- `"hello    world"` matches `"hello world"`
+- `"  hello  "` matches `"hello"`
+- Original whitespace is still visualized in output
+
 ##### Cross-Platform Line Ending Support
 
-The diff function automatically normalizes different line ending formats:
+The diff function automatically normalizes different line ending formats for cross-platform compatibility:
 
 - **Unix/Linux**: `\n` (LF)
 - **Windows**: `\r\n` (CRLF)
 - **Classic Mac**: `\r` (CR)
 
-All line endings are converted to Unix format (`\n`) before comparison, ensuring consistent behavior across platforms.
+All line endings are automatically converted to Unix format (`\n`) before comparison, ensuring consistent behavior across platforms.
 
 ```
 unixText := "line1\nline2"
 windowsText := "line1\r\nline2"
+macText := "line1\rline2"
 
-diff, match := text.Diff(unixText, windowsText)
-// match will be true - line endings are normalized
+// All three will match after normalization
+diff1, match1 := text.Diff(unixText, windowsText, false) // match1 = true
+diff2, match2 := text.Diff(unixText, macText, false)     // match2 = true
 ```
+
+**Benefits:**
+- Files created on different operating systems will compare correctly
+- No need to worry about git autocrlf settings affecting tests
+- Mixed line endings within the same file are handled gracefully
 
 ##### Diff Symbols
 

@@ -90,7 +90,7 @@ func ExampleDiff() {
 	expected := "hello world"
 	actual := "hello world"
 
-	_, match := text.Diff(expected, actual)
+	_, match := text.Diff(expected, actual, false)
 	fmt.Printf("Strings match: %t\n", match)
 	// Output:
 	// Strings match: true
@@ -101,7 +101,7 @@ func ExampleDiff_different() {
 	expected := "hello"
 	actual := "help!"
 
-	diff, match := text.Diff(expected, actual)
+	diff, match := text.Diff(expected, actual, false)
 	fmt.Printf("Strings match: %t\n", match)
 	// Diff output shows the difference with ≠ symbol
 	fmt.Printf("Contains difference marker: %t\n", len(diff) > 0)

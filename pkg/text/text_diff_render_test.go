@@ -7,7 +7,7 @@ import (
 
 // compareMultilineStrings provides a visual diff for debugging test failures
 func compareMultilineStrings(diffOutput, expected string) string {
-	debugDiff, _ := Diff(expected, diffOutput)
+	debugDiff, _ := Diff(expected, diffOutput, false)
 	return debugDiff
 }
 
@@ -18,7 +18,7 @@ func TestDiff_RenderLogic_WithEqualLines_ShowsCorrectFormat(t *testing.T) {
 	actual := "hello world"
 
 	// When
-	diffOutput, isMatch := Diff(expected, actual)
+	diffOutput, isMatch := Diff(expected, actual, false)
 
 	// Then
 	if !isMatch {
@@ -42,7 +42,7 @@ func TestDiff_RenderLogic_WithDifferentLines_ShowsCorrectFormat(t *testing.T) {
 	actual := "help!"
 
 	// When
-	diffOutput, isMatch := Diff(expected, actual)
+	diffOutput, isMatch := Diff(expected, actual, false)
 
 	// Then
 	if isMatch {
@@ -67,7 +67,7 @@ func TestDiff_RenderLogic_WithTabSpaceDifference_ShowsCorrectFormat(t *testing.T
 	actual := "hello world"
 
 	// When
-	diffOutput, isMatch := Diff(expected, actual)
+	diffOutput, isMatch := Diff(expected, actual, false)
 
 	// Then
 	if isMatch {
@@ -92,7 +92,7 @@ func TestDiff_RenderLogic_WithMissingInActual_ShowsLeftArrow(t *testing.T) {
 	actual := "line1\nline2"
 
 	// When
-	diffOutput, isMatch := Diff(expected, actual)
+	diffOutput, isMatch := Diff(expected, actual, false)
 
 	// Then
 	if isMatch {
@@ -121,7 +121,7 @@ func TestDiff_RenderLogic_WithMissingInExpected_ShowsRightArrow(t *testing.T) {
 	actual := "line1\nline2\nline3"
 
 	// When
-	diffOutput, isMatch := Diff(expected, actual)
+	diffOutput, isMatch := Diff(expected, actual, false)
 
 	// Then
 	if isMatch {
@@ -140,12 +140,12 @@ func TestDiff_RenderLogic_WithMissingInExpected_ShowsRightArrow(t *testing.T) {
 }
 
 func TestDiff_RenderLogic_WithWhitespaceSymbols_ShowsCorrectSymbols(t *testing.T) {
-	// Given
-	expected := "hello\t\r\vworld"
+	// Given - Note: \r is normalized to \n, so using \v and \f for testing
+	expected := "hello\t\v\fworld"
 	actual := "hello     world"
 
 	// When
-	diffOutput, _ := Diff(expected, actual)
+	diffOutput, _ := Diff(expected, actual, false)
 
 	// Then
 	// Should show tab symbol
@@ -153,14 +153,14 @@ func TestDiff_RenderLogic_WithWhitespaceSymbols_ShowsCorrectSymbols(t *testing.T
 		t.Errorf("Expected output to contain tab symbol '␉', got: %s", diffOutput)
 	}
 
-	// Should show carriage return symbol
-	if !strings.Contains(diffOutput, "␍") {
-		t.Errorf("Expected output to contain carriage return symbol '␍', got: %s", diffOutput)
-	}
-
 	// Should show vertical tab symbol
 	if !strings.Contains(diffOutput, "␋") {
 		t.Errorf("Expected output to contain vertical tab symbol '␋', got: %s", diffOutput)
+	}
+
+	// Should show form feed symbol
+	if !strings.Contains(diffOutput, "␌") {
+		t.Errorf("Expected output to contain form feed symbol '␌', got: %s", diffOutput)
 	}
 
 	// Should show space symbols
@@ -175,7 +175,7 @@ func TestDiff_RenderLogic_WithHeaderAlignment_ShowsCorrectPadding(t *testing.T) 
 	actual := "this is a much longer string"
 
 	// When
-	diffOutput, _ := Diff(expected, actual)
+	diffOutput, _ := Diff(expected, actual, false)
 
 	// Then
 	lines := strings.Split(diffOutput, "\n")
@@ -210,7 +210,7 @@ func TestDiff_RenderLogic_WithTrailingNewlines_ShowsCorrectSymbol(t *testing.T) 
 	actual := "hello\nworld\n"
 
 	// When
-	diffOutput, isMatch := Diff(expected, actual)
+	diffOutput, isMatch := Diff(expected, actual, false)
 
 	// Then
 	if isMatch {
@@ -223,37 +223,17 @@ func TestDiff_RenderLogic_WithTrailingNewlines_ShowsCorrectSymbol(t *testing.T) 
 	}
 }
 
-func TestDiff_RenderLogic_WithMacVsWindowsLineEndings_ShowsCorrectSymbols(t *testing.T) {
-	// Given
+func TestDiff_RenderLogic_WithMacVsWindowsLineEndings_NormalizesAndMatches(t *testing.T) {
+	// Given - line endings are now normalized
 	macLineEnding := "Hello, World!\n"       // macOS/Unix line ending
 	windowsLineEnding := "Hello, World!\r\n" // Windows line ending
 
 	// When
-	diffOutput, isMatch := Diff(macLineEnding, windowsLineEnding)
+	_, isMatch := Diff(macLineEnding, windowsLineEnding, false)
 
-	// Then
-	if isMatch {
-		t.Fatalf("Expected isMatch to be false when line endings differ (macOS vs Windows)")
-	}
-
-	// Should show carriage return symbol for Windows line ending
-	if !strings.Contains(diffOutput, "␍") {
-		t.Fatalf("Expected output to contain carriage return symbol '␍' for Windows line ending, got: %s", diffOutput)
-	}
-
-	// Should show the difference indicator
-	if !strings.Contains(diffOutput, "≠") {
-		t.Fatalf("Expected output to contain difference indicator '≠', got: %s", diffOutput)
-	}
-
-	// Should show triangle pointer indicating where the difference starts
-	if !strings.Contains(diffOutput, "△") {
-		t.Fatalf("Expected output to contain triangle pointer '△', got: %s", diffOutput)
-	}
-
-	// Should contain the base text "Hello, World!"
-	if !strings.Contains(diffOutput, "Hello,␣World!") {
-		t.Fatalf("Expected output to contain 'Hello,␣World!' with visible space, got: %s", diffOutput)
+	// Then - should match after line ending normalization
+	if !isMatch {
+		t.Fatalf("Expected isMatch to be true after line ending normalization (macOS vs Windows)")
 	}
 }
 
@@ -263,7 +243,7 @@ func TestDiff_RenderLogic_WithUnicodeContent_MaintainsAlignment(t *testing.T) {
 	actual := "hello world"
 
 	// When
-	diffOutput, _ := Diff(expected, actual)
+	diffOutput, _ := Diff(expected, actual, false)
 
 	// Then
 	lines := strings.Split(diffOutput, "\n")
@@ -289,7 +269,7 @@ func TestDiff_RenderLogic_WithEmptyStrings_ShowsHeaderOnly(t *testing.T) {
 	actual := ""
 
 	// When
-	diffOutput, isMatch := Diff(expected, actual)
+	diffOutput, isMatch := Diff(expected, actual, false)
 
 	// Then
 	if !isMatch {

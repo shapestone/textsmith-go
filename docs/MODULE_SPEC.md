@@ -121,8 +121,8 @@ Run `make bench` to measure:
 func TestMyFunction(t *testing.T) {
     expected := generateExpectedOutput()
     actual := myFunction(input)
-    
-    if diff, match := text.Diff(expected, actual); !match {
+
+    if diff, match := text.Diff(expected, actual, false); !match {
         t.Errorf("Output mismatch:\n%s", diff)
     }
 }
